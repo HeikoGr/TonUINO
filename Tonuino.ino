@@ -44,13 +44,13 @@ public:
     delay(100);
     nextTrack(track);
   }
-  static void OnCardOnline(uint16_t code) {
+  static void OnCardOnline(__attribute__((unused)) uint16_t code) {
     Serial.println(F("SD Karte online "));
   }
-  static void OnCardInserted(uint16_t code) {
+  static void OnCardInserted(__attribute__((unused)) uint16_t code) {
     Serial.println(F("SD Karte bereit "));
   }
-  static void OnCardRemoved(uint16_t code) {
+  static void OnCardRemoved(__attribute__((unused)) uint16_t code) {
     Serial.println(F("SD Karte entfernt "));
   }
 };
@@ -207,7 +207,7 @@ void setup() {
   if (digitalRead(buttonPause) == LOW && digitalRead(buttonUp) == LOW &&
       digitalRead(buttonDown) == LOW) {
     Serial.println(F("Reset -> EEPROM wird gelöscht"));
-    for (int i = 0; i < EEPROM.length(); i++) {
+    for (unsigned int i = 0; i < EEPROM.length(); i++) {
       EEPROM.write(i, 0);
     }
   }
@@ -224,11 +224,12 @@ void loop() {
     downButton.read();
 
     if (pauseButton.wasReleased()) {
-      if (ignorePauseButton == false)
+      if (ignorePauseButton == false){
         if (isPlaying())
           mp3.pause();
         else
           mp3.start();
+      }
       ignorePauseButton = false;
     } else if (pauseButton.pressedFor(LONG_PRESS) &&
                ignorePauseButton == false) {
@@ -331,7 +332,7 @@ void loop() {
 }
 
 int voiceMenu(int numberOfOptions, int startMessage, int messageOffset,
-              bool preview = false, int previewFromFolder = 0) {
+              bool preview = false, int previewFromFolder) {
   int returnValue = 0;
   if (startMessage != 0)
     mp3.playMp3FolderTrack(startMessage);
@@ -479,7 +480,7 @@ bool readCard(nfcTagObject *nfcTag) {
     returnValue = false;
     Serial.print(F("PCD_Authenticate() failed: "));
     Serial.println(mfrc522.GetStatusCodeName(status));
-    return;
+    return returnValue;
   }
 
   // Show the whole sector as it currently is
@@ -529,7 +530,7 @@ void writeCard(nfcTagObject nfcTag) {
                      nfcTag.special, // track or function for admin cards
                      0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-  byte size = sizeof(buffer);
+  //byte size = sizeof(buffer);
 
   mifareType = mfrc522.PICC_GetType(mfrc522.uid.sak);
 
@@ -555,7 +556,7 @@ void writeCard(nfcTagObject nfcTag) {
     Serial.print(F("MIFARE_Write() failed: "));
     Serial.println(mfrc522.GetStatusCodeName(status));
       mp3.playMp3FolderTrack(401);
-  }
+  } 
   else
     mp3.playMp3FolderTrack(400);
   Serial.println();
